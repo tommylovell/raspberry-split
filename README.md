@@ -15,7 +15,7 @@ too small.  (Or too big. Depends on who you ask!)
 
 Some things to keep in mind.
 
-it’s a dos MBR disk, not GPT (and therefore limited in size to 2 TiB.)
+It’s a dos MBR disk, not GPT (and therefore limited in size to 2 TiB.)
 RANT:  TiB?  Really. Not TB?  That’s because some idiot (yes, I know all about
 the IEEE), probably in collusion with the drive manufacturers, decided that
 1K=1,000 (like in Europe), not 1024 (2**10) like it had always been for decades!
@@ -24,7 +24,7 @@ there; but 1K in a computer IS 1024, one page in Linux IS 4k, 4096 bytes,
 not 4000 bytes.  1MB IS 1024*1024 bytes, 1048576, not 1000000 bytes.  Etcetera.
 I’ll stop pontificating now.
 
-the program that follows has only been tested on disks that are
+The program that follows has only been tested on disks that are
 “Sector size (logical/physical): 512 bytes / 512 bytes”.  Sorry.  It’s cheap.
 I’m lazy.  And I don’t have a 4096 logical sector size disk.
 
@@ -44,9 +44,13 @@ file (root=PARTUUID=xxxxxxxx-02) and in ‘/etc/fstab’ entries.  (On disk, it 
 at 0x1b0 and is little-endian. It displays big-endian in ‘fdisk’, and that is
 what should be coded in ‘cmdline.txt’ and ‘/etc/fstab’.) E.g.
 in /boot/cmdline.txt:
+
 root=PARTUUID=xxxxxxxx-02
+
 in /etc/fstab:
+
 PARTUUID=xxxxxxxx-01  /boot           vfat    defaults          0       2
+
 PARTUUID=xxxxxxxx-02  /               ext4    defaults,noatime  0       1
 
 The second partition, later mounted at ‘/’ (ie. the root partition), is ext4,
@@ -85,15 +89,25 @@ cd Downloads/raspian
 sudo unzip 2019-04-08-raspbian-stretch-full.zip
 ./raspberry-split
 sudo fdisk /dev/sdb
+
    p
+   
    d/2
+   
    d/1
+   
    n/p/1/8192/516095
+   
    t/1/c
+   
    n/p/2/516096/10969087
+   
    t/2/83
+   
    x/i/0x43c1e3bb
+   
    r
+   
    w
 
 (that is, print the size, partition information, disk identification, etc of
@@ -108,22 +122,36 @@ Then you could do this to format the filesystems, mount everything, and copy
 the OS to your target drive:
 
 sudo mkfs.vfat /dev/sdb1
+
 sudo mkfs.ext4 /dev/sdb2
+
 mkdir -p /mnt/boot.SD
+
 mkdir -p /mnt/root.SD
+
 mkdir -p /mnt/boot.img
+
 mkdir -p /mnt/root.img
+
 sudo mount /dev/sdb1 /mnt/boot.SD
+
 sudo mount /dev/sdb2 /mnt/root.SD
+
 sudo mount 2019-04-08-raspbian-stretch-full.img.boot /mnt/boot.img
+
 sudo mount 2019-04-08-raspbian-stretch-full.img.root /mnt/root.img
+
 sudo rsync -avx --sparse /mnt/boot.img/ /mnt/boot.SD
+
 sudo rsync -ax   --sparse /mnt/root.img/ /mnt/root.SD
+
 sudo umount /mnt/boot.SD /mnt/root.SD /mnt/boot.img /mnt/root.img
+
 cd -
 
-(This assumes your target device is on /dev/sdb,
-the “2019-04-08-raspbian-stretch-full.zip” img has been downloaded to
+(This assumes your target device is on /dev/sdb 
+(it could be /dev/mmcblk0, so /dev/mmcblk0p1 and /dev/mmcblk0p2 if writing to an SD card),
+the “2019-04-08-raspbian-stretch-full.zip” img (or latest image) has been downloaded to
 ~/Downloads/raspian, and the above C program has been compiled with
 “gcc -o ~/Downloads/raspian/raspberry-split raspberry-split.c”
 You could also add the --static flag if you want to copy the executable around...)
