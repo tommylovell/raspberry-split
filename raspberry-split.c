@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2019 Thomas Lovell
+Copyright (c) 2026 Thomas Lovell
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@ SOFTWARE.
 */
 /* Whew.  Do I really need that? */
 
+#define  VERS        "1.01"
 #define DEBUG 0     /* '1' produces debug info; '0' does not */
 #define _LARGEFILE64_SOURCE
 #define S 512      /* sector size */
@@ -65,13 +66,13 @@ union rec_tag {
             unsigned char num[4];
         } p1, p2, p3, p4;
         unsigned char disksig[2];
-    } mbr; 
+    } mbr;
     char    buf[S];
 } rec;
 
     if (argv[1] == NULL)
-        strncpy(ifn, "/home/pi/Downloads/raspian/2019-04-08-raspbian-stretch-full.img", sizeof(ifn));
-    else 
+        strncpy(ifn, "/home/pi/Downloads/raspios/2025-12-04-raspios-trixie-arm64.img", sizeof(ifn));
+    else
         strncpy(ifn, argv[1], sizeof(ifn)-1);
     printf("input filename set to %s\n", ifn);
 
@@ -102,6 +103,22 @@ union rec_tag {
     memcpy(&p2_lba, &rec.mbr.p2.lba, 4);
     memcpy(&p2_num, &rec.mbr.p2.num, 4);
 
+    printf("Master Boot record (dos/MBR): sector: 0 / LBA 0; one sector\n");
+
+    strcpy(ofn, ifn);
+    strcat(ofn, ".mbr");
+    printf("output filename set to %s\n", ofn);
+
+    if ((ofd = open(ofn, O_WRONLY | O_LARGEFILE | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
+        errsv = errno;
+        printf("The output file '%s' could not be opened.\n", ofn);
+        printf(" errno is '%i - %s'\n", errsv, strerror(errsv));
+        exit(4);
+    }
+
+    write(ofd, rec.buf, S);
+    close(ofd);
+
     printf("Partition 1: starting sector: %i; number of sectors: %i\n", p1_lba, p1_num);
     of = p1_lba*S;
     off64t = lseek64(ifd, of, SEEK_SET);
@@ -127,7 +144,7 @@ union rec_tag {
     }
 
     close(ofd);
- 
+
     printf("Partition 2: starting sector: %i; number of sectors: %i\n", p2_lba, p2_num);
     of = p2_lba*S;
     off64t = lseek64(ifd, of, SEEK_SET);
@@ -151,9 +168,9 @@ union rec_tag {
         }
         write(ofd, rec.buf, S);
     }
- 
+
     close(ofd);
-    
+
     close(ifd);
     exit(0);
 }
@@ -186,26 +203,27 @@ SOFTWARE.
     unsigned char buff[17];
     unsigned char *pc = (unsigned char*)addr;
 
+
     // Output description if given.
     if (desc != NULL)
         printf ("%s:\n", desc);
-    
+
     // Process every byte in the data.
     for (i = 0; i < len; i++) {
         // Multiple of 16 means new line (with lne offset).
-        
+
         if ((i % 16) == 0) {
             // Just don't print ASCII for the zeroth line.
             if (i != 0)
                 printf ("  %s\n", buff);
-            
+
             // Output the offset.
             printf ("  %04x ", i);
         }
-        
+
         // Now the hex code for the specific character.
         printf (" %02x", pc[i]);
-        
+
         // And store a printable ASCII character for later.
         if ((pc[i] < 0x20) || (pc[i] > 0x7e))
             buff[i % 16] = '.';
@@ -219,7 +237,7 @@ SOFTWARE.
         printf ("   ");
         i++;
     }
-    
+
     // And print the final ASCII bit.
     printf ("  %s\n", buff);
-}    
+}
