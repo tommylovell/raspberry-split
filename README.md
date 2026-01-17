@@ -8,7 +8,7 @@ possibly some padding, and finally a minimal ext4 partition 2.
 The image files come “from the factory” as zipped files that can be used
 directly by the Balena Etcher utility, Raspberry Pi Imager, or (after unzipping) 
 by ‘dd’, to produce a bootable disk.  This bootable disk, usually an SD card 
-(or USB thumb drive, SSD, or HDD on a Pi3), can be placed in a Pi and booted 
+(or USB thumb drive, SSD, or HDD, on a Pi3), can be placed in a Pi and booted 
 by the Pi firmware. The unfortunate thing about this packaging method is that 
 the first partition, the VFAT ‘/boot’ one, is not easily resizable and may be 
 too small.  (Or too big. Depends on who you ask!)
@@ -18,7 +18,7 @@ Some things to keep in mind.
 It’s a dos MBR disk, not GPT (and therefore limited in size to 2 TiB.)
 RANT:  TiB?  Really. Not TB?  That’s because some idiot (yes, I know all about
 the IEEE), probably in collusion with the drive manufacturers, decided that
-1K=1,000 (like in Europe), not 1024 (2**10) like it had always been for decades!
+1K=1,000 (like SI in Europe), not 1024 (2**10) like it had always been for decades!
 Granted, one kilogram is 1000 grams, one kilometer is 1000 meters, no argument
 there; but 1K in a computer IS 1024, one page in Linux IS 4k, 4096 bytes,
 not 4000 bytes.  1MB IS 1024*1024 bytes, 1048576, not 1000000 bytes.  Etcetera.
@@ -91,23 +91,14 @@ sudo unzip 2019-04-08-raspbian-stretch-full.zip
 sudo fdisk /dev/sdb
 
    p
-   
    d/2
-   
    d/1
-   
    n/p/1/8192/516095
-   
    t/1/c
-   
    n/p/2/516096/10969087
-   
    t/2/83
-   
    x/i/0x43c1e3bb
-   
    r
-   
    w
 
 (that is, print the size, partition information, disk identification, etc of
@@ -122,31 +113,18 @@ Then you could do this to format the filesystems, mount everything, and copy
 the OS to your target drive:
 
 sudo mkfs.vfat /dev/sdb1
-
 sudo mkfs.ext4 /dev/sdb2
-
 mkdir -p /mnt/boot.SD
-
 mkdir -p /mnt/root.SD
-
 mkdir -p /mnt/boot.img
-
 mkdir -p /mnt/root.img
-
 sudo mount /dev/sdb1 /mnt/boot.SD
-
 sudo mount /dev/sdb2 /mnt/root.SD
-
 sudo mount 2019-04-08-raspbian-stretch-full.img.boot /mnt/boot.img
-
 sudo mount 2019-04-08-raspbian-stretch-full.img.root /mnt/root.img
-
 sudo rsync -avx --sparse /mnt/boot.img/ /mnt/boot.SD
-
 sudo rsync -ax   --sparse /mnt/root.img/ /mnt/root.SD
-
 sudo umount /mnt/boot.SD /mnt/root.SD /mnt/boot.img /mnt/root.img
-
 cd -
 
 (This assumes your target device is on /dev/sdb 
@@ -155,5 +133,8 @@ the “2019-04-08-raspbian-stretch-full.zip” img (or latest image) has been do
 ~/Downloads/raspian, and the above C program has been compiled with
 “gcc -o ~/Downloads/raspian/raspberry-split raspberry-split.c”
 You could also add the --static flag if you want to copy the executable around...)
+
+The v1.01 version of this program save the MBR as file .mbr.  This can be used by 
+raspberry-unsplit.c to recreate the input .img file as .img.unsplit.  
 
 Hope this is useful, but, as always, YMMV.
